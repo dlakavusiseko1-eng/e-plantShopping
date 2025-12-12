@@ -1,17 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './ProductList.css';
 import CartItem from './CartItem';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addItem } from './CartSlice';
 
 function ProductList({ onHomeClick }) {
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false);
-    const [addedToCart, setAddedToCart] = useState({}); // State to track which products are added to cart
     const dispatch = useDispatch();
+    
+    // Get cart items from Redux store
+    const cartItems = useSelector(state => state.cart.items);
+    
+    // Calculate total items in cart
+    const calculateCartTotal = () => {
+        return cartItems.reduce((total, item) => total + item.quantity, 0);
+    };
+
+    // Check if a plant is in the cart
+    const isPlantInCart = (plantName) => {
+        return cartItems.some(item => item.name === plantName);
+    };
 
     const plantsArray = [
-        // ... (plantsArray remains exactly the same as in your original file)
         {
             category: "Air Purifying Plants",
             plants: [
@@ -268,13 +279,7 @@ function ProductList({ onHomeClick }) {
         // Dispatch the plant to Redux store
         dispatch(addItem(plant));
         
-        // Update local state to reflect product has been added to cart
-        setAddedToCart(prevState => ({
-            ...prevState,
-            [plant.name]: true
-        }));
-        
-        // Optional: Show a confirmation message
+        // Show confirmation message
         alert(`${plant.name} added to cart!`);
     };
 
@@ -294,7 +299,37 @@ function ProductList({ onHomeClick }) {
                 </div>
                 <div className="ul" style={styleObjUl}>
                     <div><a href="#" onClick={(e) => handlePlantsClick(e)} style={styleA}>Plants</a></div>
-                    <div><a href="#" onClick={(e) => handleCartClick(e)} style={styleA}><h1 className='cart'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" height="68" width="68"><rect width="156" height="156" fill="none"></rect><circle cx="80" cy="216" r="12"></circle><circle cx="184" cy="216" r="12"></circle><path d="M42.3,72H221.7l-26.4,92.4A15.9,15.9,0,0,1,179.9,176H84.1a15.9,15.9,0,0,1-15.4-11.6L32.5,37.8A8,8,0,0,0,24.8,32H8" fill="none" stroke="#faf9f9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" id="mainIconPathAttribute"></path></svg></h1></a></div>
+                    <div style={{ position: 'relative' }}>
+                        <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}>
+                            <h1 className='cart'>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" height="68" width="68">
+                                    <rect width="156" height="156" fill="none"></rect>
+                                    <circle cx="80" cy="216" r="12"></circle>
+                                    <circle cx="184" cy="216" r="12"></circle>
+                                    <path d="M42.3,72H221.7l-26.4,92.4A15.9,15.9,0,0,1,179.9,176H84.1a15.9,15.9,0,0,1-15.4-11.6L32.5,37.8A8,8,0,0,0,24.8,32H8" fill="none" stroke="#faf9f9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" id="mainIconPathAttribute"></path>
+                                </svg>
+                            </h1>
+                        </a>
+                        {calculateCartTotal() > 0 && (
+                            <div className="cart_quantity_count" style={{
+                                position: 'absolute',
+                                top: '10px',
+                                right: '10px',
+                                backgroundColor: '#e74c3c',
+                                color: 'white',
+                                borderRadius: '50%',
+                                width: '30px',
+                                height: '30px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '16px',
+                                fontWeight: 'bold'
+                            }}>
+                                {calculateCartTotal()}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
             
@@ -308,24 +343,28 @@ function ProductList({ onHomeClick }) {
                                 </div>
                             </div>
                             <div className="product-list">
-                                {category.plants.map((plant, plantIndex) => (
-                                    <div key={plantIndex} className="product-card">
-                                        <img 
-                                            src={plant.image} 
-                                            alt={plant.name} 
-                                            className="product-image"
-                                        />
-                                        <h3 className="product-title">{plant.name}</h3>
-                                        <p className="product-description">{plant.description}</p>
-                                        <div className="product-price">{plant.cost}</div>
-                                        <button 
-                                            className={`product-button ${addedToCart[plant.name] ? 'added-to-cart' : ''}`}
-                                            onClick={() => handleAddToCart(plant)}
-                                        >
-                                            {addedToCart[plant.name] ? 'Added to Cart' : 'Add to Cart'}
-                                        </button>
-                                    </div>
-                                ))}
+                                {category.plants.map((plant, plantIndex) => {
+                                    const isAdded = isPlantInCart(plant.name);
+                                    return (
+                                        <div key={plantIndex} className="product-card">
+                                            <img 
+                                                src={plant.image} 
+                                                alt={plant.name} 
+                                                className="product-image"
+                                            />
+                                            <h3 className="product-title">{plant.name}</h3>
+                                            <p className="product-description">{plant.description}</p>
+                                            <div className="product-price">{plant.cost}</div>
+                                            <button 
+                                                className={`product-button ${isAdded ? 'added-to-cart' : ''}`}
+                                                onClick={() => handleAddToCart(plant)}
+                                                disabled={isAdded}
+                                            >
+                                                {isAdded ? 'Added to Cart' : 'Add to Cart'}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     ))}
