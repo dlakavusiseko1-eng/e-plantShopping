@@ -12,9 +12,9 @@ function ProductList({ onHomeClick }) {
     // Get cart items from Redux store
     const cartItems = useSelector(state => state.cart.items);
     
-    // Calculate total items in cart
-    const calculateCartTotal = () => {
-        return cartItems.reduce((total, item) => total + item.quantity, 0);
+    // Calculate total quantity of items in cart (exact function name from instructions)
+    const calculateTotalQuantity = () => {
+        return cartItems ? cartItems.reduce((total, item) => total + item.quantity, 0) : 0;
     };
 
     // Check if a plant is in the cart
@@ -310,7 +310,7 @@ function ProductList({ onHomeClick }) {
                                 </svg>
                             </h1>
                         </a>
-                        {calculateCartTotal() > 0 && (
+                        {calculateTotalQuantity() > 0 && (
                             <div className="cart_quantity_count" style={{
                                 position: 'absolute',
                                 top: '10px',
@@ -326,7 +326,7 @@ function ProductList({ onHomeClick }) {
                                 fontSize: '16px',
                                 fontWeight: 'bold'
                             }}>
-                                {calculateCartTotal()}
+                                {calculateTotalQuantity()}
                             </div>
                         )}
                     </div>
